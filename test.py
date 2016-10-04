@@ -30,7 +30,7 @@ def hog(img):
     hist = np.hstack(hists)     # hist is a 64 bit vector
     return hist
 
-img = cv2.imread('123.png',0)
+img = cv2.imread('1234.png',0)
 
 cells = [np.hsplit(row,100) for row in np.vsplit(img,50)]
 
