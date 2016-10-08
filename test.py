@@ -13,8 +13,6 @@ clf=svm.SVC(gamma=0.001,C=100)
 1.while a high C aims at classifying all training examples correctly
 2.The larger gamma is, the closer other examples must be to be affected.
 '''
-
-
 img=cv2.imread('test1.jpg')
 img = cv2.bilateralFilter(img, 11, 17, 17)#Filt out some noise
 edge=cv2.Canny(img,10,200)#detect the boarder
