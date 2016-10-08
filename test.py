@@ -1,11 +1,11 @@
 import imutils as imutils
+from skimage.exposure import exposure
 from sklearn import svm
 from sklearn.svm import SVC
 from sklearn import datasets
 import matplotlib.pyplot as plt
 import cv2
 import numpy as np
-form skimage import rescale_intensity
 
 digits=datasets.load_digits()
 clf=svm.SVC(gamma=0.001,C=100)
