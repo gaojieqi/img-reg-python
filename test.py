@@ -64,7 +64,7 @@ def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,precise):
     cv2.imwrite("ret_img.png",ret_img )
     return separate_line
 
-def optimize_separate(img_to_find,separate_line):
+def optimize_separate(separate_line):
     sum=0
     for i in range(len(separate_line)-2):
         sum+=separate_line[i+1]-separate_line[i]
@@ -75,10 +75,29 @@ def optimize_separate(img_to_find,separate_line):
             del separate_line[i+1]
     return separate_line
 
-
-
-#def find_num_img(img_to_find,separate_line):
-
+def find_num_img(img_to_find,separate_line):
+    gray = cv2.cvtColor(img_to_find, cv2.COLOR_RGB2GRAY)
+   # gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
+    row, col = gray.shape
+    sum=0
+    for i in range(col-1):
+        for j in range(row-1):
+            sum+=gray[j][i]
+    print sum
+    for i in range(len(separate_line)-2):
+        subsum=0
+        sub = separate_line[i + 1] - separate_line[i]
+        ratio = sub / col
+        print sub
+        for j in range(separate_line[i],separate_line[i+1]):
+            for k in range(row-1):
+                subsum+=gray[k][j]
+        print subsum,ratio
+        if subsum<sum*ratio:
+            for j in range(separate_line[i],separate_line[i+1]):
+                for k in range(row-1):
+                    gray[k][j]=0
+    cv2.imwrite("gray_return.png", gray)
 
 
 digits=datasets.load_digits()
@@ -164,7 +183,9 @@ cv2.imwrite("warp.png",warp)
 '''2.Must pass the image that in colorful format'''
 
 separate_line=separate_outside(warp,warp,fact_submax,fact_length,precise)
-separate_line=optimize_separate(warp,separate_line)
+separate_line=optimize_separate(separate_line)
+find_num_img(warp,separate_line)
+
 
 cv2.waitKey(0)
 
