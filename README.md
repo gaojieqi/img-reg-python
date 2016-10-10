@@ -25,9 +25,11 @@ Such modules are needed:
 
 Works are gathered in test.py,your can change cv2.imread() parameter in test.py to deal with different images,check it out.
 
-Here are some refferences about opencv:
+Here are some references about opencv:
 http://opencv-python-tutroals.readthedocs.io/en/latest/
 
+
 Be free to contact with me gaojieqi888@163.com haha
+
 
 
