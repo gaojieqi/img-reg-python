@@ -7,19 +7,19 @@ import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 
-def distract_inside(img,fact_submax,fact_length,NumOfLines,row,col):
+def distract_inside(gray,img,fact_submax,fact_length,NumOfLines,row,col):
     submax = 0
-    flag=0
+    end_flag=0
     NOL=0
     buffer=[0]*NumOfLines
     dif=0
     for i in range(col - 1):
-        if flag==1:
+        if end_flag==1:
             i-=1
             break
         subsum = 0
         for j in range(row - 1):
-            subsum += img[j][i]
+            subsum += gray[j][i]
         if submax < subsum:
             submax = subsum
         if subsum < fact_submax * submax:
@@ -34,16 +34,17 @@ def distract_inside(img,fact_submax,fact_length,NumOfLines,row,col):
                 img[j][i] = 255
             NOL+=1
             if NOL==NumOfLines:
-                flag=1
+                end_flag=1
                 break
     return i,NOL,img
 
-def distract_outside(img,fact_submax,fact_length,NumOfLines,precise):
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+def distract_outside(img_to_gray,img_be_draw,fact_submax,fact_length,NumOfLines,precise):
+    gray = cv2.cvtColor(img_to_gray, cv2.COLOR_RGB2GRAY)
     gray = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,11,2)
+    gray = cv2.bilateralFilter(gray, 11, 17, 17)
     row, col = gray.shape
     for n in range(100):
-        i,NOL,ret_img=distract_inside(gray.copy(),fact_submax,fact_length,NumOfLines,row,col)
+        i,NOL,ret_img=distract_inside(gray.copy(),img_be_draw,fact_submax,fact_length,NumOfLines,row,col)
         if i<(row-1) and NOL==NumOfLines:
             fact_submax-precise
             continue
@@ -54,8 +55,6 @@ def distract_outside(img,fact_submax,fact_length,NumOfLines,precise):
             break
     cv2.imwrite("ret_img.png",ret_img )
     return
-
-
 
 
 
@@ -74,10 +73,10 @@ img = cv2.bilateralFilter(img, 11, 17, 17)
 edge=cv2.Canny(img,10,200)
 ratio=img.shape[0]/300.0
 row,col,demension=img.shape
-number_char=5
+number_char=11
 precise=0.1
-fact_submax=0.7
-fact_length=0.6
+fact_submax=0.6
+fact_length=0.8
 #
 
 
@@ -143,7 +142,7 @@ cv2.imwrite("warp.png",warp)
 
 '''2.Must pass the image that in colorful format'''
 
-distract_outside(warp,fact_submax,fact_length,number_char,precise)
+distract_outside(warp,warp,fact_submax,fact_length,number_char,precise)
 
 cv2.waitKey(0)
 
