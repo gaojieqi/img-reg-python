@@ -64,7 +64,9 @@ def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,precise):
     cv2.imwrite("ret_img.png",ret_img )
     return separate_line
 
-def
+def optimize_separate(img_to_find,separate_line):
+    for i in range(len(separate_line)):
+
 
 
 def find_num_img(img_to_find,separate_line):
@@ -147,7 +149,7 @@ warp = cv2.warpPerspective(img, M, (maxWidth,maxHeight))
 cv2.imwrite("warp.png",warp)
 
 
-#distract numbers in the captched image
+#separate numbers in the captched image
 
 '''1.Need to add code accociated with image rotation'''
 
