@@ -15,7 +15,7 @@ def separate_inside(gray,img,fact_submax,fact_length,row,col):
     NumOfLines=1
     buffer=[0]
     dif=0
-    last_line_col=0
+    separate_line=[0]
     for i in range(col - 1):
         if end_flag==1:
             i-=1
@@ -36,6 +36,8 @@ def separate_inside(gray,img,fact_submax,fact_length,row,col):
             for j in range(row - 1):
                 img[j][i] =0
             last_line_col=i
+            separate_line[NOL]=i
+            separate_line.append([])
             if col-last_line_col>0.1*col:
                 NumOfLines+=1
                 buffer.append([0])
@@ -43,14 +45,14 @@ def separate_inside(gray,img,fact_submax,fact_length,row,col):
             if NOL==NumOfLines:
                 end_flag=1
                 break
-    return i,NOL,NumOfLines,img,
+    return i,NOL,NumOfLines,img,separate_line
 
 def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,precise):
     gray = cv2.cvtColor(img_to_gray, cv2.COLOR_RGB2GRAY)
     gray = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,11,2)
     row, col = gray.shape
     for n in range(100):
-        i,NOL,NumOfLines,ret_img=separate_inside(gray.copy(),img_be_draw,fact_submax,fact_length,row,col)
+        i,NOL,NumOfLines,ret_img,separate_line=separate_inside(gray.copy(),img_be_draw,fact_submax,fact_length,row,col)
         if i<(row-1) and NOL==NumOfLines:
             fact_submax-precise
             continue
@@ -60,8 +62,12 @@ def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,precise):
         if i==row-1 and NOL==NumOfLines:
             break
     cv2.imwrite("ret_img.png",ret_img )
-    return
+    return separate_line
 
+def
+
+
+def find_num_img(img_to_find,separate_line):
 
 
 
@@ -147,7 +153,7 @@ cv2.imwrite("warp.png",warp)
 
 '''2.Must pass the image that in colorful format'''
 
-separate_outside(warp,warp,fact_submax,fact_length,precise)
+separate_line=separate_outside(warp,warp,fact_submax,fact_length,precise)
 
 cv2.waitKey(0)
 
