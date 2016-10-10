@@ -7,6 +7,59 @@ import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 
+def distract_inside(img,fact_submax,fact_length,NumOfLines,row,col):
+    submax = 0
+    flag=0
+    NOL=0
+    buffer=[0]*NumOfLines
+    dif=0
+    for i in range(col - 1):
+        if flag==1:
+            i-=1
+            break
+        subsum = 0
+        for j in range(row - 1):
+            subsum += img[j][i]
+        if submax < subsum:
+            submax = subsum
+        if subsum < fact_submax * submax:
+            buffer[NOL] = i
+            if NOL != 0:
+                dif=buffer[NOL]-buffer[NOL-1]
+                if dif < temp*fact_length:
+                    continue
+            temp=dif
+            submax = 0
+            for j in range(row - 1):
+                img[j][i] = 255
+            NOL+=1
+            if NOL==NumOfLines:
+                flag=1
+                break
+    return i,NOL,img
+
+def distract_outside(img,fact_submax,fact_length,NumOfLines,precise):
+    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    gray = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,11,2)
+    row, col = gray.shape
+    for n in range(100):
+        i,NOL,ret_img=distract_inside(gray.copy(),fact_submax,fact_length,NumOfLines,row,col)
+        if i<(row-1) and NOL==NumOfLines:
+            fact_submax-precise
+            continue
+        if i==row-1 and NOL<NumOfLines:
+            fact_submax+precise
+            continue
+        if i==row-1 and NOL==NumOfLines:
+            break
+    cv2.imwrite("ret_img.png",ret_img )
+    return
+
+
+
+
+
+
 
 digits=datasets.load_digits()
 clf=svm.SVC(gamma=0.001,C=100)
@@ -14,14 +67,17 @@ clf=svm.SVC(gamma=0.001,C=100)
 1.while a high C aims at classifying all training examples correctly
 2.The larger gamma is, the closer other examples must be to be affected.
 '''
-img=cv2.imread('test2.jpg')
+img=cv2.imread('test1.jpg')
 #Filt out some noise
 img = cv2.bilateralFilter(img, 11, 17, 17)
 #detect the boarder
 edge=cv2.Canny(img,10,200)
 ratio=img.shape[0]/300.0
 row,col,demension=img.shape
-
+number_char=5
+precise=0.1
+fact_submax=0.7
+fact_length=0.6
 #
 
 
@@ -50,6 +106,7 @@ for c in cnts:
         break
 cv2.drawContours(img, [screenCnt], -1, (0, 255, 127), 3)
 cv2.imwrite('rectangle.jpg',img)
+
 
 #find the points of rectangle
 pts=screenCnt.reshape(4,2)
@@ -81,31 +138,12 @@ cv2.imwrite("warp.png",warp)
 
 
 #distract numbers in the captched image
-warp=cv2.cvtColor(warp,cv2.COLOR_RGB2GRAY)
-print warp.shape
-row,col=warp.shape
 
+'''1.Need to add code accociated with image rotation'''
 
-'''Need to add code accociated with image rotation'''
+'''2.Must pass the image that in colorful format'''
 
-index=0.8
-submax=0
-for i in range(col-1):
-    subsum=0
-    for j in range(row-1):
-        subsum+=warp[j][i]
-    if submax<subsum:
-        submax=subsum
-    if subsum<index*submax:
-        submax=0
-        for j in range(row-1):
-            warp[j][i] = 255
-
-cv2.imwrite("warp1.png",warp)
-
-
-
-
+distract_outside(warp,fact_submax,fact_length,number_char,precise)
 
 cv2.waitKey(0)
 
