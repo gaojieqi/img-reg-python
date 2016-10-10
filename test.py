@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 
-def distract_inside(gray,img,fact_submax,fact_length,NumOfLines,row,col):
+#define outer and iner funtion to separate the numbers
+def separate_inside(gray,img,fact_submax,fact_length,NumOfLines,row,col):
     submax = 0
     end_flag=0
     NOL=0
@@ -43,12 +44,12 @@ def distract_inside(gray,img,fact_submax,fact_length,NumOfLines,row,col):
                 break
     return i,NOL,img
 
-def distract_outside(img_to_gray,img_be_draw,fact_submax,fact_length,NumOfLines,precise):
+def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,NumOfLines,precise):
     gray = cv2.cvtColor(img_to_gray, cv2.COLOR_RGB2GRAY)
     gray = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,11,2)
     row, col = gray.shape
     for n in range(100):
-        i,NOL,ret_img=distract_inside(gray.copy(),img_be_draw,fact_submax,fact_length,NumOfLines,row,col)
+        i,NOL,ret_img=separate_inside(gray.copy(),img_be_draw,fact_submax,fact_length,NumOfLines,row,col)
         if i<(row-1) and NOL==NumOfLines:
             fact_submax-precise
             continue
@@ -59,7 +60,6 @@ def distract_outside(img_to_gray,img_be_draw,fact_submax,fact_length,NumOfLines,
             break
     cv2.imwrite("ret_img.png",ret_img )
     return
-
 
 def distract(img_to_gray):
     gray = cv2.cvtColor(img_to_gray, cv2.COLOR_RGB2GRAY)
@@ -153,7 +153,7 @@ cv2.imwrite("warp.png",warp)
 
 '''2.Must pass the image that in colorful format'''
 
-distract_outside(warp,warp,fact_submax,fact_length,number_char,precise)
+separate_outside(warp,warp,fact_submax,fact_length,number_char,precise)
 
 cv2.waitKey(0)
 
