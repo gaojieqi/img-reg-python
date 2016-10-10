@@ -7,6 +7,13 @@ import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 
+def compare(list_element,element):
+    flag=0
+    for i in range(len(list_element)):
+        if list_element[i]==element:
+            flag=1
+    return flag
+
 #define outer and inner funtion to separate the numbers
 def separate_inside(gray,img,fact_submax,fact_length,row,col):
     submax = 0
@@ -45,6 +52,7 @@ def separate_inside(gray,img,fact_submax,fact_length,row,col):
             if NOL==NumOfLines:
                 end_flag=1
                 break
+    del separate_line[NumOfLines-1]
     return i,NOL,NumOfLines,img,separate_line
 
 def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,precise):
@@ -75,28 +83,34 @@ def optimize_separate(separate_line):
             del separate_line[i+1]
     return separate_line
 
-def find_num_img(img_to_find,separate_line):
+def find_num_img(img_to_find,separate_line,quantity):
     gray = cv2.cvtColor(img_to_find, cv2.COLOR_RGB2GRAY)
-   # gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
+    #gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 19, 2)
+    cv2.imwrite('11111.jpg',gray)
     row, col = gray.shape
-    sum=0
-    for i in range(col-1):
-        for j in range(row-1):
-            sum+=gray[j][i]
-    print sum
+    SUBSUM=[0]
+    list1=[0]*quantity
     for i in range(len(separate_line)-2):
         subsum=0
         sub = separate_line[i + 1] - separate_line[i]
-        ratio = sub / col
-        print sub
         for j in range(separate_line[i],separate_line[i+1]):
             for k in range(row-1):
                 subsum+=gray[k][j]
-        print subsum,ratio
-        if subsum<sum*ratio:
-            for j in range(separate_line[i],separate_line[i+1]):
-                for k in range(row-1):
-                    gray[k][j]=0
+        SUBSUM[i]=subsum
+        SUBSUM.append(0)
+    del SUBSUM[-1]
+    SUBSUM=sorted(SUBSUM,reverse=True)
+    list1[0:quantity]=SUBSUM[0:quantity]
+    for i in range(len(separate_line)-2):
+        subsum=0
+        sub = separate_line[i + 1] - separate_line[i]
+        for j in range(separate_line[i],separate_line[i+1]):
+            for k in range(row-1):
+                subsum+=gray[k][j]
+        if compare(list1,subsum)==0:
+            for j in range(separate_line[i], separate_line[i + 1]):
+                for k in range(row - 1):
+                    gray[k][j]=255
     cv2.imwrite("gray_return.png", gray)
 
 
@@ -113,7 +127,7 @@ img = cv2.bilateralFilter(img, 11, 17, 17)
 edge=cv2.Canny(img,10,200)
 ratio=img.shape[0]/300.0
 row,col,demension=img.shape
-number=[]*5
+quantity=5
 precise=0.01
 fact_submax=0.6
 fact_length=0.8
@@ -183,8 +197,9 @@ cv2.imwrite("warp.png",warp)
 '''2.Must pass the image that in colorful format'''
 
 separate_line=separate_outside(warp,warp,fact_submax,fact_length,precise)
+print separate_line
 separate_line=optimize_separate(separate_line)
-find_num_img(warp,separate_line)
+find_num_img(warp,separate_line,quantity)
 
 
 cv2.waitKey(0)
