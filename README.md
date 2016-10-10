@@ -14,6 +14,8 @@ order to show your thought process.In me,flowing methods are under consideration
 3.template matching
 
 
+
+=============================
 Notice:
 
 Works in python 2.7
