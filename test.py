@@ -37,7 +37,7 @@ def separate_inside(gray,img,fact_submax,fact_length,row,col):
                 img[j][i] =0
             last_line_col=i
             separate_line[NOL]=i
-            separate_line.append([])
+            separate_line.append(0)
             if col-last_line_col>0.1*col:
                 NumOfLines+=1
                 buffer.append([0])
@@ -65,11 +65,19 @@ def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,precise):
     return separate_line
 
 def optimize_separate(img_to_find,separate_line):
-    for i in range(len(separate_line)):
+    sum=0
+    for i in range(len(separate_line)-2):
+        sum+=separate_line[i+1]-separate_line[i]
+    average=sum/len(separate_line)
+    for i in range(len(separate_line)-2):
+        sub=separate_line[i+1]-separate_line[i]
+        if sub<average*0.5:
+            del separate_line[i+1]
+    return separate_line
 
 
 
-def find_num_img(img_to_find,separate_line):
+#def find_num_img(img_to_find,separate_line):
 
 
 
@@ -156,6 +164,7 @@ cv2.imwrite("warp.png",warp)
 '''2.Must pass the image that in colorful format'''
 
 separate_line=separate_outside(warp,warp,fact_submax,fact_length,precise)
+separate_line=optimize_separate(warp,separate_line)
 
 cv2.waitKey(0)
 
