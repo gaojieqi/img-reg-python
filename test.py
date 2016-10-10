@@ -61,14 +61,7 @@ def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,NumOfLines,
     cv2.imwrite("ret_img.png",ret_img )
     return
 
-def distract(img_to_gray):
-    gray = cv2.cvtColor(img_to_gray, cv2.COLOR_RGB2GRAY)
-    gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
-    row, col = gray.shape
 
-    for i in range(col-1):
-        for j in range(row-1):
-            sum=1
 
 digits=datasets.load_digits()
 clf=svm.SVC(gamma=0.001,C=100)
