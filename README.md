@@ -18,7 +18,7 @@ order to show your thought process.In me,flowing methods are under consideration
 =============================
 Notice:
 
-Works in python 2.7
+The file works in python 2.7
 
 Such modules are needed:
 1.numpy
