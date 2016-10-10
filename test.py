@@ -12,7 +12,7 @@ def separate_inside(gray,img,fact_submax,fact_length,row,col):
     submax = 0
     end_flag=0
     NOL=0
-    NumOfLines=0
+    NumOfLines=1
     buffer=[0]
     dif=0
     last_line_col=0
