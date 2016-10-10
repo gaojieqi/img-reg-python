@@ -13,6 +13,7 @@ def distract_inside(gray,img,fact_submax,fact_length,NumOfLines,row,col):
     NOL=0
     buffer=[0]*NumOfLines
     dif=0
+    last_line_col=0
     for i in range(col - 1):
         if end_flag==1:
             i-=1
@@ -31,7 +32,11 @@ def distract_inside(gray,img,fact_submax,fact_length,NumOfLines,row,col):
             temp=dif
             submax = 0
             for j in range(row - 1):
-                img[j][i] = 255
+                img[j][i] =0
+            last_line_col=i
+            if col-last_line_col>0.1*col:
+                NumOfLines+=1
+                buffer.append([0])
             NOL+=1
             if NOL==NumOfLines:
                 end_flag=1
@@ -41,7 +46,6 @@ def distract_inside(gray,img,fact_submax,fact_length,NumOfLines,row,col):
 def distract_outside(img_to_gray,img_be_draw,fact_submax,fact_length,NumOfLines,precise):
     gray = cv2.cvtColor(img_to_gray, cv2.COLOR_RGB2GRAY)
     gray = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,11,2)
-    gray = cv2.bilateralFilter(gray, 11, 17, 17)
     row, col = gray.shape
     for n in range(100):
         i,NOL,ret_img=distract_inside(gray.copy(),img_be_draw,fact_submax,fact_length,NumOfLines,row,col)
@@ -57,8 +61,14 @@ def distract_outside(img_to_gray,img_be_draw,fact_submax,fact_length,NumOfLines,
     return
 
 
+def distract(img_to_gray):
+    gray = cv2.cvtColor(img_to_gray, cv2.COLOR_RGB2GRAY)
+    gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
+    row, col = gray.shape
 
-
+    for i in range(col-1):
+        for j in range(row-1):
+            sum=1
 
 digits=datasets.load_digits()
 clf=svm.SVC(gamma=0.001,C=100)
@@ -66,15 +76,16 @@ clf=svm.SVC(gamma=0.001,C=100)
 1.while a high C aims at classifying all training examples correctly
 2.The larger gamma is, the closer other examples must be to be affected.
 '''
-img=cv2.imread('test1.jpg')
+img=cv2.imread('test2.jpg')
 #Filt out some noise
 img = cv2.bilateralFilter(img, 11, 17, 17)
 #detect the boarder
 edge=cv2.Canny(img,10,200)
 ratio=img.shape[0]/300.0
 row,col,demension=img.shape
-number_char=11
-precise=0.1
+number=[]*5
+number_char=5
+precise=0.01
 fact_submax=0.6
 fact_length=0.8
 #
