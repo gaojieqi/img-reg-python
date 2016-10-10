@@ -8,7 +8,9 @@ Number-Detection is the next step but good proposition around it is fully welcom
 order to show your thought process.In me,flowing methods are under consideration:
 
 1.svm
+
 2.use zernike.mounent
+
 3.template matching
 
 
