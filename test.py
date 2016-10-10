@@ -52,7 +52,7 @@ def separate_inside(gray,img,fact_submax,fact_length,row,col):
             if NOL==NumOfLines:
                 end_flag=1
                 break
-    del separate_line[NumOfLines-1]
+    del separate_line[-1]
     return i,NOL,NumOfLines,img,separate_line
 
 def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,precise):
@@ -76,9 +76,11 @@ def optimize_separate(separate_line):
     sum=0
     for i in range(len(separate_line)-2):
         sum+=separate_line[i+1]-separate_line[i]
-    average=sum/len(separate_line)
+    print sum,len(separate_line)
+    average=sum/(len(separate_line)-1)
     for i in range(len(separate_line)-2):
         sub=separate_line[i+1]-separate_line[i]
+        print sub,average
         if sub<average*0.5:
             del separate_line[i+1]
     return separate_line
@@ -199,6 +201,7 @@ cv2.imwrite("warp.png",warp)
 separate_line=separate_outside(warp,warp,fact_submax,fact_length,precise)
 print separate_line
 separate_line=optimize_separate(separate_line)
+print separate_line
 find_num_img(warp,separate_line,quantity)
 
 
