@@ -21,11 +21,17 @@ Notice:
 The file works in python 2.7
 
 Such modules are needed:
+
 1.numpy
+
 2.scipy
+
 3.opencv
+
 4.sklearn
+
 5.matplotlib
+
 6.skimage
 
 Works are gathered in test.py,your can change cv2.imread() parameter in test.py to deal with different images,check it out.
