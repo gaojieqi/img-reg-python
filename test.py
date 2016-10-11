@@ -60,7 +60,7 @@ def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,precise):
     gray = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,11,2)
     row, col = gray.shape
     for n in range(100):
-        i,NOL,NumOfLines,ret_img,separate_line=separate_inside(gray.copy(),img_be_draw,fact_submax,fact_length,row,col)
+        i,NOL,NumOfLines,ret_img,separate_line=separate_inside(gray,img_be_draw.copy(),fact_submax,fact_length,row,col)
         if i<(row-1) and NOL==NumOfLines:
             fact_submax-precise
             continue
@@ -70,24 +70,31 @@ def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,precise):
         if i==row-1 and NOL==NumOfLines:
             break
     cv2.imwrite("ret_img.png",ret_img )
-    return separate_line
+    return separate_line,ret_img
 
 def optimize_separate(separate_line):
-    sum=0
-    for i in range(len(separate_line)-2):
-        sum+=separate_line[i+1]-separate_line[i]
-    print sum,len(separate_line)
+    sum=separate_line[-1]-separate_line[0]
     average=sum/(len(separate_line)-1)
+    buff=[0]
+    num=0
     for i in range(len(separate_line)-2):
         sub=separate_line[i+1]-separate_line[i]
         print sub,average
-        if sub<average*0.5:
-            del separate_line[i+1]
-    return separate_line
+        if sub<average*0.8:
+            separate_line[i]=0
+    for i in range(len(separate_line)-1):
+        if separate_line[i]!=0:
+            buff[num]=separate_line[i]
+            num+=1
+            buff.append(0)
+    del buff[-1]
+    return buff
 
 def find_num_img(img_to_find,separate_line,quantity):
     gray = cv2.cvtColor(img_to_find, cv2.COLOR_RGB2GRAY)
-    #gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 19, 2)
+    ret,gray = cv2.threshold(gray,30,255,cv2.THRESH_BINARY)
+    plt.imshow(gray, 'gray')
+    plt.show()
     cv2.imwrite('11111.jpg',gray)
     row, col = gray.shape
     SUBSUM=[0]
@@ -198,7 +205,7 @@ cv2.imwrite("warp.png",warp)
 
 '''2.Must pass the image that in colorful format'''
 
-separate_line=separate_outside(warp,warp,fact_submax,fact_length,precise)
+separate_line,ret_img=separate_outside(warp,warp,fact_submax,fact_length,precise)
 print separate_line
 separate_line=optimize_separate(separate_line)
 print separate_line
