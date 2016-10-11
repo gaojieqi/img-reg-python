@@ -56,8 +56,6 @@ def separate_inside(gray,img,fact_submax,fact_length,row,col):
     return i,NOL,NumOfLines,img,separate_line
 
 def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,precise):
-    gray = cv2.cvtColor(img_to_gray, cv2.COLOR_RGB2GRAY)
-    gray = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,11,2)
     row, col = gray.shape
     for n in range(100):
         i,NOL,NumOfLines,ret_img,separate_line=separate_inside(gray,img_be_draw.copy(),fact_submax,fact_length,row,col)
@@ -91,11 +89,6 @@ def optimize_separate(separate_line):
     return buff
 
 def find_num_img(img_to_find,separate_line,quantity):
-    gray = cv2.cvtColor(img_to_find, cv2.COLOR_RGB2GRAY)
-    ret,gray = cv2.threshold(gray,30,255,cv2.THRESH_BINARY)
-    plt.imshow(gray, 'gray')
-    plt.show()
-    cv2.imwrite('11111.jpg',gray)
     row, col = gray.shape
     SUBSUM=[0]
     list1=[0]*quantity
@@ -205,6 +198,8 @@ cv2.imwrite("warp.png",warp)
 
 '''2.Must pass the image that in colorful format'''
 
+gray = cv2.cvtColor(warp, cv2.COLOR_RGB2GRAY)
+ret,warp = cv2.threshold(gray,30,255,cv2.THRESH_BINARY)
 separate_line,ret_img=separate_outside(warp,warp,fact_submax,fact_length,precise)
 print separate_line
 separate_line=optimize_separate(separate_line)
