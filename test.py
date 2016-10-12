@@ -8,6 +8,9 @@ from sklearn import datasets
 import matplotlib.pyplot as plt
 import cv2
 import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from keras.datasets import mnist
+
 
 def compare(list_element,element):
     flag=0
@@ -127,7 +130,7 @@ def find_num_img(img_to_find,separate_line,quantity):
 1.while a high C aims at classifying all training examples correctly
 2.The larger gamma is, the closer other examples must be to be affected.
 '''
-img=cv2.imread('test1.jpg')
+img=cv2.imread('test2.jpg')
 #Filt out some noise
 img = cv2.bilateralFilter(img, 11, 17, 17)
 #detect the boarder
@@ -237,14 +240,24 @@ cv2.imwrite("warp.png",warp)
 
 #find numbers in SVM
 digits=datasets.load_digits()
-clf = svm.SVC(gamma=0.0001,C=100)
+clf = svm.SVC(gamma=0.001,C=100)
 n_samples = len(digits.images)
 x,y=digits.data[:-10],digits.target[:-10]
 clf.fit(x,y)
 predict = np.array(digits.data[-6]).reshape((1, -1))
 
+vectorizer=TfidfVectorizer()
+vectors= vectorizer.fit_transform()
+x_train, y_train =datasets.load_svmlight_file("optdigits.tra")
+x_test, y_test = datasets.load_svmlight_files("optdigits.tes")
+
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+clf1=svm.SVC(gamma=0.001,C=100)
+#clf1.fit(X_train,y_train)
+print X_train.shape,y_train.shape
+
 gray = cv2.cvtColor(warp, cv2.COLOR_RGB2GRAY)
-ret,gray = cv2.threshold(gray,60,255,cv2.THRESH_BINARY)
+ret,gray = cv2.threshold(gray,50,255,cv2.THRESH_BINARY)
 cv2.imwrite('gray.jpg',gray)
 img_find_contour,contours,hierarchy= cv2.findContours(gray,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
 samples =  np.empty((0,100))
@@ -261,11 +274,10 @@ for cnt in contours:
             roismall = cv2.resize(roi, (8, 8))
             cv2.imshow('norm', warp)
             sample = roismall.reshape((1, 64))
-            print clf.predict(sample)
+            print clf1.predict(sample)
             key = cv2.waitKey(0)
             if key == 27:
                  sys.exit()
-
 
 #raw_input()
 # cv2.imwrite( "d:/123.png", colorCVT );
