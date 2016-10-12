@@ -237,11 +237,14 @@ cv2.imwrite("warp.png",warp)
 
 #find numbers in SVM
 digits=datasets.load_digits()
-clf = svm.SVC(gamma=0.001)
-
-clf.fit(digits.data[:-1], digits.target[:-1])
-clf.predict(digits.data[-1])
-
+clf = svm.SVC(gamma=0.0001,C=100)
+n_samples = len(digits.images)
+x,y=digits.data[:-10],digits.target[:-10]
+clf.fit(x,y)
+predict = np.array(digits.data[-6]).reshape((1, -1))
+print clf.predict(predict)
+plt.imshow(digits.images[-6],cmap=plt.cm.gray_r,interpolation="nearest")
+plt.show()
 
 cv2.waitKey(0)
 
