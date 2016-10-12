@@ -9,11 +9,11 @@ order to show your thought process.In me,flowing methods are under consideration
 
 1.svm
 
-2.use zernike.mounent
+2.zernike.mounent
 
 3.template matching
 
-
+4.KNearest-k, which I have already tested and gives bad result
 
 =============================
 Notice:
