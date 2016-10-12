@@ -262,6 +262,9 @@ for cnt in contours:
             cv2.imshow('norm', warp)
             sample = roismall.reshape((1, 64))
             print clf.predict(sample)
+            key = cv2.waitKey(0)
+            if key == 27:
+                 sys.exit()
 
 
 #raw_input()
