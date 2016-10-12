@@ -1,7 +1,9 @@
 import imutils as imutils
+import sys
+
+import sklearn
 from skimage.exposure import exposure
 from sklearn import svm
-from sklearn.svm import SVC
 from sklearn import datasets
 import matplotlib.pyplot as plt
 import cv2
@@ -55,10 +57,10 @@ def separate_inside(gray,img,fact_submax,fact_length,row,col):
     del separate_line[-1]
     return i,NOL,NumOfLines,img,separate_line
 
-def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,precise):
-    row, col = gray.shape
+def separate_outside(img_in_gray,fact_submax,fact_length,precise):
+    row, col = img_in_gray.shape
     for n in range(100):
-        i,NOL,NumOfLines,ret_img,separate_line=separate_inside(gray,img_be_draw.copy(),fact_submax,fact_length,row,col)
+        i,NOL,NumOfLines,ret_img,separate_line=separate_inside(gray,gray.copy(),fact_submax,fact_length,row,col)
         if i<(row-1) and NOL==NumOfLines:
             fact_submax-precise
             continue
@@ -70,11 +72,12 @@ def separate_outside(img_to_gray,img_be_draw,fact_submax,fact_length,precise):
     cv2.imwrite("ret_img.png",ret_img )
     return separate_line,ret_img
 
-def optimize_separate(separate_line):
+def optimize_separate(separate_line,img_to_test):
     sum=separate_line[-1]-separate_line[0]
     average=sum/(len(separate_line)-1)
     buff=[0]
     num=0
+    row,col,dimension = img_to_test.shape
     for i in range(len(separate_line)-2):
         sub=separate_line[i+1]-separate_line[i]
         print sub,average
@@ -85,6 +88,10 @@ def optimize_separate(separate_line):
             buff[num]=separate_line[i]
             num+=1
             buff.append(0)
+    for i in range(len(buff)-1):
+        for j in range(row - 1):
+            img_to_test[j][buff[i]] = 0
+    cv2.imwrite('11111111.jpg',img_to_test)
     del buff[-1]
     return buff
 
@@ -116,13 +123,11 @@ def find_num_img(img_to_find,separate_line,quantity):
     cv2.imwrite("gray_return.png", gray)
 
 
-digits=datasets.load_digits()
-clf=svm.SVC(gamma=0.001,C=100)
 '''
 1.while a high C aims at classifying all training examples correctly
 2.The larger gamma is, the closer other examples must be to be affected.
 '''
-img=cv2.imread('test2.jpg')
+img=cv2.imread('test1.jpg')
 #Filt out some noise
 img = cv2.bilateralFilter(img, 11, 17, 17)
 #detect the boarder
@@ -130,8 +135,8 @@ edge=cv2.Canny(img,10,200)
 ratio=img.shape[0]/300.0
 row,col,demension=img.shape
 quantity=5
-precise=0.01
-fact_submax=0.6
+precise=0.1
+fact_submax=0.8
 fact_length=0.8
 #
 
@@ -192,19 +197,50 @@ warp = cv2.warpPerspective(img, M, (maxWidth,maxHeight))
 cv2.imwrite("warp.png",warp)
 
 
-#separate numbers in the captched image
+#find numbers in KNearest
 
 '''1.Need to add code accociated with image rotation'''
 
 '''2.Must pass the image that in colorful format'''
 
-gray = cv2.cvtColor(warp, cv2.COLOR_RGB2GRAY)
-ret,warp = cv2.threshold(gray,30,255,cv2.THRESH_BINARY)
-separate_line,ret_img=separate_outside(warp,warp,fact_submax,fact_length,precise)
-print separate_line
-separate_line=optimize_separate(separate_line)
-print separate_line
-find_num_img(warp,separate_line,quantity)
+# gray = cv2.cvtColor(warp, cv2.COLOR_RGB2GRAY)
+# ret,gray = cv2.threshold(gray,60,255,cv2.THRESH_BINARY)
+# cv2.imwrite('gray.jpg',gray)
+# img_find_contour,contours,hierarchy= cv2.findContours(gray,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+# samples =  np.empty((0,100))
+# responses = []
+# keys = [i for i in range(48,58)]
+# num_buff=0
+# for cnt in contours:
+#     if cv2.contourArea(cnt)>0.01*gray.size and cv2.contourArea(cnt)<warp.size*0.05:
+#         rect = cv2.minAreaRect(contours[0])
+#         [x, y, w, h] = cv2.boundingRect(cnt)
+#         if h > 28:
+#             cv2.rectangle(warp, (x, y), (x + w, y + h), (0, 0, 255), 2)
+#             roi = gray[y:y + h, x:x + w]
+#             roismall = cv2.resize(roi, (10, 10))
+#             cv2.imshow('norm', warp)
+#             key = cv2.waitKey(0)
+#             if key == 27:
+#                 sys.exit()
+#             elif key in keys:
+#                 responses.append(int(chr(key)))
+#                 sample = roismall.reshape((1, 100))
+#                 samples = np.append(samples, sample, 0)
+#                 num_buff+=1
+# responses = np.array(responses,np.float32)
+# responses = responses.reshape((responses.size,1))
+# print "training complete"
+# np.savetxt('generalsamples.data',samples)
+# np.savetxt('generalresponses.data',responses)
+
+
+#find numbers in SVM
+digits=datasets.load_digits()
+clf = svm.SVC(gamma=0.001)
+
+clf.fit(digits.data[:-1], digits.target[:-1])
+clf.predict(digits.data[-1])
 
 
 cv2.waitKey(0)
