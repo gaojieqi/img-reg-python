@@ -242,11 +242,26 @@ n_samples = len(digits.images)
 x,y=digits.data[:-10],digits.target[:-10]
 clf.fit(x,y)
 predict = np.array(digits.data[-6]).reshape((1, -1))
-print clf.predict(predict)
-plt.imshow(digits.images[-6],cmap=plt.cm.gray_r,interpolation="nearest")
-plt.show()
 
-cv2.waitKey(0)
+gray = cv2.cvtColor(warp, cv2.COLOR_RGB2GRAY)
+ret,gray = cv2.threshold(gray,60,255,cv2.THRESH_BINARY)
+cv2.imwrite('gray.jpg',gray)
+img_find_contour,contours,hierarchy= cv2.findContours(gray,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+samples =  np.empty((0,100))
+responses = []
+keys = [i for i in range(48,58)]
+num_buff=0
+for cnt in contours:
+    if cv2.contourArea(cnt)>0.01*gray.size and cv2.contourArea(cnt)<warp.size*0.05:
+        rect = cv2.minAreaRect(contours[0])
+        [x, y, w, h] = cv2.boundingRect(cnt)
+        if h > 28:
+            cv2.rectangle(warp, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            roi = gray[y:y + h, x:x + w]
+            roismall = cv2.resize(roi, (8, 8))
+            cv2.imshow('norm', warp)
+            sample = roismall.reshape((1, 64))
+            print clf.predict(sample)
 
 
 #raw_input()
