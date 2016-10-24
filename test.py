@@ -141,22 +141,6 @@ fact_submax=0.8
 fact_length=0.8
 
 
-
-#######################################take fourier transfer action on img
-gray=cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
-fourier=np.fft.fft2(gray)
-f=np.fft.fftshift(fourier)
-temp = 20*np.log(np.abs(f))
-cv2.imwrite('fourier.jpg',temp)
-img1=cv2.imread('fourier,jpg')
-#retval,f_detect=cv2.threshold(img1,100,150,cv2.THRESH_BINARY)
-#retval,f_detect=cv2.adaptiveThreshold(img1,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
-edge_fourier=cv2.Canny(img1,10,50)
-cv2.imwrite('edge_fourier.jpg',edge_fourier)
-lines= cv2.HoughLines(edge_fourier,1,np.pi/180,100)
-
-
-
 ###############################################find the contours and regonize the rectangle
 image_find_contour,contours,hierarchy = cv2.findContours(edge, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 cnts=sorted(contours,key=cv2.contourArea,reverse=True)[:10]
@@ -206,6 +190,7 @@ dst = np.array([
 	[0, maxHeight - 1]], dtype = "float32")
 M = cv2.getPerspectiveTransform(rect, dst)
 warp = cv2.warpPerspective(img, M, (maxWidth,maxHeight))
+gray = cv2.cvtColor(warp, cv2.COLOR_RGB2GRAY)
 cv2.imwrite("warp.png",warp)
 
 
@@ -259,8 +244,8 @@ cv2.imwrite("warp.png",warp)
 
 
 '''Random Forest Algorithm'''
-(X_train, y_train), (X_test, y_test) = mnist.load_data()
-X_train=X_train.reshape(60000,784)
+# (X_train, y_train), (X_test, y_test) = mnist.load_data()
+# X_train=X_train.reshape(60000,784)
 # clf=RandomForestClassifier(n_estimators=2000)
 # clf.fit(X_train,y_train)
 # joblib.dump(clf, "train_model.m")
@@ -280,22 +265,30 @@ X_train=X_train.reshape(60000,784)
 # # clf = joblib.load("svm_model.m")
 # print clf.predict(X_train[10000].reshape(1,784)),y_train[10000]
 
+'''kNearest'''
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+X_train=X_train.reshape(60000,784).astype(np.float32)
+y_train=y_train.astype(np.float32)
+kNearest = cv2.ml.KNearest_create()
+kNearest.train(X_train,cv2.ml.ROW_SAMPLE,y_train)
 
-gray = cv2.cvtColor(warp, cv2.COLOR_RGB2GRAY)
-ret,gray = cv2.threshold(gray,150,255,cv2.THRESH_BINARY)
-cv2.imwrite('gray.jpg',gray)
 
 
-im = cv2.imread('testimg.png')
-out = np.zeros(im.shape,np.uint8)
-gray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
+'''use testimg to test the accuracy of the programme'''
+img = cv2.imread('testimg.png')
+gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 ret,thresh=cv2.threshold(gray,50,255,cv2.THRESH_BINARY_INV)
+
+
+ret,thresh=cv2.threshold(gray,150,255,cv2.THRESH_BINARY_INV)
 cv2.imwrite('thresh.jpg',thresh)
 img_find_contour,contours,hierarchy= cv2.findContours(thresh.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-W,H=gray.shape
+out = np.zeros(gray.shape,np.uint8)
+H,W=gray.shape
 
 '''factor that makes the digits to the center of the image'''
-factor=0.2
+factor_h=0.3
+factor_w=0.1
 '''minimal h of digits's hight'''
 H_MIN=28
 
@@ -306,14 +299,15 @@ listOfPossibleChars = []
 
 for cnt in contours:
         [x,y,w,h] = cv2.boundingRect(cnt)
-        if  h>H_MIN and w<0.5*W and h<H*0.5:
-            # cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),2)
-            num = thresh[(y-int(factor*h)):(y+h+int(h*factor)),(x-int(factor*w)):(x+w+int(w*factor))]
-            # num_origin= thresh[y:(y + h ), x :(x + w)]
+        # if  h>H_MIN and w<0.5*W and h>H*0.5:#use in ordinary circumstance
+        if h>H_MIN:#use in testing
+            cv2.rectangle(warp,(x,y),(x+w,y+h),(0,255,0),2)
+            num = thresh[(y-int(factor_h*h)):(y+h+int(h*factor_h)),(x-int(factor_w*w)):(x+w+int(w*factor_w))]
+            # num= thresh[y:(y + h ), x :(x + w)]
             H1,W1=num.shape
             for i in range(W1):
                 for j in range(H1):
-                    if i not in range(int(factor*w),w+int(factor*w)) or j not in range(int(factor*h),int(factor*h)+h):
+                    if i not in range(int(factor_w*w),w+int(factor_w*w)) or j not in range(int(factor_h*h),int(factor_h*h)+h):
                         num[j,i]=0
             # plt.imshow(num, 'gray')
             # plt.show()
@@ -335,21 +329,23 @@ for cnt in contours:
             #         # end if
             #         # end for
             # longestListOfMatchingCharsInPlate = listOfListsOfMatchingCharsInPlate[intIndexOfLongestListOfChars]
+
             if num_possible.fltAspectRatio != 0:
+                num_possible=DetectChars.removeInnerOverlappingChars(num_possible)
                 num_detect = DetectChars.recognizeCharsInPlate(num, num_possible)
-                cv2.putText(out, str(num_detect), (x, y + h), 0, 1, (0, 255, 0))
-            # numsmall = cv2.resize(num,(28,28))
-            # ret, numsmall = cv2.threshold(numsmall,1,255,cv2.THRESH_BINARY)
-            # plt.imshow(num,'gray')
-            # plt.show()
+                if num_detect!=100:
+                    cv2.putText(out, str(num_detect), (x, y + h), 0, 1, (0, 255, 0))
+                    print num_detect
+                else:
+                    numsmall = cv2.resize(num, (28, 28))
+                    ret, numsmall = cv2.threshold(numsmall, 1, 255, cv2.THRESH_BINARY)
+                    numsmall = numsmall.reshape((1, 784))
+                    numsmall = np.float32(numsmall)
+                    retval, npaResults, neigh_resp, dists = kNearest.findNearest(numsmall, k=1)
+                    cv2.putText(out, str(int(npaResults[0][0])), (x, y + h), 0, 1, (0, 255, 0))
+                    print int(npaResults[0][0])
 
-            # num = DetectPlates.detectPlatesInScene(num)  # detect plates
-            # num_detect = DetectChars.detectCharsInPlates(num)
-            # print num_detect[0].strChars
-
-            # numsmall = numsmall.reshape((1,784))
             # print clf.predict(numsmall)
-
 
 cv2.imwrite('out.png',out)
 
