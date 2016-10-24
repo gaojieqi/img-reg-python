@@ -42,6 +42,7 @@ http://opencv-python-tutroals.readthedocs.io/en/latest/
 
 
 -------------------UPDATED ON 10.24-----------------------
+
 Progamme which used to recognize the digits has almost finished now, with about 80% accuracy.
 
 Find a way to improve the accuracy
