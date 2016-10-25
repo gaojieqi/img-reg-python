@@ -147,17 +147,8 @@ def neural_network_model(data):
     return output
 
 
-def train_neural_network(x):
-    prediction=neural_network_model(x)
-    cost=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction,y_train))
-    optimizer=tf.train.AdamOptimizer().minimize(cost)
-    hm_epochs=10
-    with tf.Session() as sess:
-        sess.run(tf.initialize_all_variables())
-        for epoch in range(hm_epochs):
-            for _ in range(int(mnist.train.num_examples/batch_size)):
-                epoch_x,epoch_y=mnist.train.next_batch(batch_size)
-                _,c=sess.run([optimizer,cost],feed_dict={x_train:epoch_x,y_train:epoch_y})
+
+
 
 
 
@@ -328,14 +319,32 @@ n_nodes_hl3=500
 n_classes=10
 batch_size=100
 feature_num=784
-x_train=tf.placeholder('float',[None,feature_num])
-y_train=tf.placeholder('float')
-train_neural_network(x_train)
-x_test=tf.placeholder('float',[None,feature_num])
-y_test=tf.placeholder('float')
-correct=tf.equal(tf.argmax(x_test,1),tf.argmax(y_test,1))
-accuracy=tf.reduce_mean(tf.cast(correct,'float'))
-print('Accuracy:',accuracy.eval({x_test:mnist.test.images,y_test:mnist.test.labels}))
+X=tf.placeholder('float',[None,feature_num])
+Y=tf.placeholder('float')
+
+prediction=neural_network_model(X)
+cost=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction,Y))
+optimizer=tf.train.AdamOptimizer().minimize(cost)
+hm_epochs=10
+
+sess.run(tf.initialize_all_variables())
+for epoch in range(hm_epochs):
+    epoch_loss=0
+    for _ in range(int(mnist.train.num_examples/batch_size)):
+        epoch_x,epoch_y=mnist.train.next_batch(batch_size)
+        _,c=sess.run([optimizer,cost],feed_dict={X:epoch_x,Y:epoch_y})
+        epoch_loss+=c
+    print('Epoch',epoch,'completed out of',hm_epochs,'loss:',epoch_loss)
+saver=tf.train.Saver()
+'''save model'''
+# saver.save(sess,'Neural_Network.model')
+'''load model'''
+saver.restore(sess,'Neural_Network.model')
+
+
+
+
+
 
 
 
@@ -357,7 +366,7 @@ H,W=gray.shape
 
 '''factor that makes the digits to the center of the image'''
 factor_h=0.3
-factor_w=0.1
+factor_w=0.2
 
 '''minimal h of digits's hight'''
 H_MIN=28
@@ -382,8 +391,8 @@ for cnt in contours:
                 for j in range(H1):
                     if i not in range(int(factor_w*w),w+int(factor_w*w)) or j not in range(int(factor_h*h),int(factor_h*h)+h):
                         num[j,i]=0
-            # plt.imshow(num, 'gray')
-            # plt.show()
+            plt.imshow(num, 'gray')
+            plt.show()
 
             num_possible = PossibleChar.PossibleChar(num)
             # listOfPossibleChars.append(possibleChar)
@@ -408,24 +417,24 @@ for cnt in contours:
                 num_possible=DetectChars.removeInnerOverlappingChars(num_possible)
                 num_detect = DetectChars.recognizeCharsInPlate(num, num_possible)
 
-                # ---------------------------dataset 1 ---------------------------------
-                if num_detect!=FLAG:
-                    cv2.putText(out, str(num_detect), (x, y + h), 0, 1, (0, 255, 0))
-                    print num_detect
-                    cv2.imwrite('out.png', out)
+                # ---------------------------dataset 1(Unknown) ---------------------------------
+                # if num_detect!=FLAG:
+                #     cv2.putText(out, str(num_detect), (x, y + h), 0, 1, (0, 255, 0))
+                #     print num_detect
+                #     cv2.imwrite('out.png', out)
+                #
+                # # ---------------------------dataset 2(60000)  Knearest ---------------------------------
+                # else:
+                #     numsmall = cv2.resize(num, (28, 28))
+                #     ret, numsmall = cv2.threshold(numsmall, 1, 255, cv2.THRESH_BINARY)
+                #     numsmall = numsmall.reshape((1, 784))
+                #     numsmall = np.float32(numsmall)
+                #     retval, npaResults, neigh_resp, dists = kNearest.findNearest(numsmall, k=1)
+                #     cv2.putText(out, str(int(npaResults[0][0])), (x, y + h), 0, 1, (0, 255, 0))
+                #     print int(npaResults[0][0])
+                #     cv2.imwrite('out.png', out)
 
-                # ---------------------------dataset 2  Knearest ---------------------------------
-                else:
-                    numsmall = cv2.resize(num, (28, 28))
-                    ret, numsmall = cv2.threshold(numsmall, 1, 255, cv2.THRESH_BINARY)
-                    numsmall = numsmall.reshape((1, 784))
-                    numsmall = np.float32(numsmall)
-                    retval, npaResults, neigh_resp, dists = kNearest.findNearest(numsmall, k=1)
-                    cv2.putText(out, str(int(npaResults[0][0])), (x, y + h), 0, 1, (0, 255, 0))
-                    print int(npaResults[0][0])
-                    cv2.imwrite('out.png', out)
-
-                # ---------------------------dataset 2  SVM ---------------------------------
+                # ---------------------------dataset 2(60000)  SVM ---------------------------------
                 # else:
                 #     numsmall = cv2.resize(num, (28, 28))
                 #     ret, numsmall = cv2.threshold(numsmall, 1, 255, cv2.THRESH_BINARY)
@@ -435,5 +444,13 @@ for cnt in contours:
                 #     cv2.imwrite('out.png', out)
 
 
-
+                # ---------------------------dataset 3(55000)   Nueral Network ---------------------------------
+                numsmall = cv2.resize(num, (28, 28))
+                ret, numsmall = cv2.threshold(numsmall, 1, 255, cv2.THRESH_BINARY)
+                numsmall = numsmall.reshape(1, 784)
+                numsmall = np.float32(numsmall)
+                pre = tf.argmax(prediction, 1)
+                print sess.run(pre, {X: numsmall})
+                # cv2.putText(out, str(), (x, y + h), 0, 1, (0, 255, 0))
+                # cv2.imwrite('out.png', out)
 
