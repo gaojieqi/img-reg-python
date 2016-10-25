@@ -321,24 +321,24 @@ batch_size=100
 feature_num=784
 X=tf.placeholder('float',[None,feature_num])
 Y=tf.placeholder('float')
-
 prediction=neural_network_model(X)
 cost=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction,Y))
 optimizer=tf.train.AdamOptimizer().minimize(cost)
-hm_epochs=10
-
-sess.run(tf.initialize_all_variables())
-for epoch in range(hm_epochs):
-    epoch_loss=0
-    for _ in range(int(mnist.train.num_examples/batch_size)):
-        epoch_x,epoch_y=mnist.train.next_batch(batch_size)
-        _,c=sess.run([optimizer,cost],feed_dict={X:epoch_x,Y:epoch_y})
-        epoch_loss+=c
-    print('Epoch',epoch,'completed out of',hm_epochs,'loss:',epoch_loss)
-saver=tf.train.Saver()
-'''save model'''
+hm_epochs=30
+#-------------------save model-------------
+# sess.run(tf.initialize_all_variables())
+# for epoch in range(hm_epochs):
+#     epoch_loss=0
+#     for _ in range(int(mnist.train.num_examples/batch_size)):
+#         epoch_x,epoch_y=mnist.train.next_batch(batch_size)
+#         _,c=sess.run([optimizer,cost],feed_dict={X:epoch_x,Y:epoch_y})
+#         epoch_loss+=c
+#     print('Epoch',epoch,'completed out of',hm_epochs,'loss:',epoch_loss)
+# saver=tf.train.Saver()
 # saver.save(sess,'Neural_Network.model')
-'''load model'''
+
+#-------------------load model-------------
+saver=tf.train.Saver()
 saver.restore(sess,'Neural_Network.model')
 
 
